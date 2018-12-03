@@ -19,11 +19,7 @@ public class Bus implements Runnable {
             e.printStackTrace();
         }
         depot.enterDepot(this);
-        try {
-            Thread.sleep((int)Math.floor(Math.random()*10000));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
         depot.exitDepot(this);
 
     }
