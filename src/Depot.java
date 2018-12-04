@@ -1,9 +1,11 @@
-import java.time.Clock;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Depot {
     private List<Bus> busQueue = new LinkedList<>();
+    private List<Bus> busWaitingList = new LinkedList<>();
+    private List<Cleaner> cleanerList = new LinkedList<>();
+    private List<Mechanic> mechanicList = new LinkedList<>();
     private DepotTime t = new DepotTime();
     private Semaphore parkingSpace = new Semaphore(25);
 
@@ -31,7 +33,7 @@ public class Depot {
             Depot.this.closeDepot();
         }
 
-        private synchronized void increaseTime(){
+        private void increaseTime(){
             time++;
             hour = (int)time/60;
             minute = (int)time%60;
@@ -44,21 +46,83 @@ public class Depot {
 
     }
 
-
+    //Bus operations
     public void exitDepot(Bus bus){
-        System.out.println("Time " + t.getTime() + "- Bus " + bus.getId() + " is requesting to leave the depot");
+        synchronized (this){
+            System.out.println("Time " + t.getTime() + "- Bus " + bus.getId() + " is requesting to leave the depot");
+            try {
+                bus.wait();
+                busQueue.add(bus);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         synchronized (this){
             useLane(bus, t);
             System.out.println("Time " + t.getTime() + "- Bus " + bus.getId() + " has left the depot.");
+            if(busQueue.size()>0){
+                busQueue.get(0).notify();
+                busQueue.remove(0);
+            }
+
         }
 
     }
 
     public void enterDepot(Bus bus){
-        System.out.println("Time " + t.getTime() + "- Bus " + bus.getId() + " is requesting to enter the depot");
+        synchronized (this) {
+            System.out.println("Time " + t.getTime() + "- Bus " + bus.getId() + " is requesting to enter the depot");
+            try {
+                wait();
+                busQueue.add(bus);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         synchronized (this){
             useLane(bus,t);
             System.out.println("Time " + t.getTime() + "- Bus " + bus.getId() + " has entered the depot.");
+            if(busQueue.size()>0){
+                busQueue.get(0).notify();
+                busQueue.remove(0);
+            }
+            //Randomise clean or service
+            cleanBus(bus);
+//            if(Math.random()>0.5){
+//                cleanBus(bus);
+//            }else {
+//                serviceBus(bus);
+//            }
+        }
+
+    }
+
+    public void cleanBus(Bus bus){
+        synchronized (this){
+            if(cleanerList.size()==0){
+                try {
+                    bus.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        synchronized (this){
+            Cleaner c = cleanerList.get(0);
+            c.cleanBus(bus);
+            cleanerList.remove(0);
+            cleanerList.add(c);
+            exitDepot(bus);
+        }
+
+    }
+
+    public synchronized void serviceBus(Bus bus){
+        if(cleanerList.size()>0){
+            cleanerList.get(0).cleanBus(bus);
+            cleanerList.remove(0);
+        }else{
+            System.out.println("Bus " + bus + " is waiting to be cleaned at the waiting bay.");
         }
 
     }
@@ -69,8 +133,6 @@ public class Depot {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-
         notify();
     }
 
@@ -81,5 +143,14 @@ public class Depot {
         } catch (InterruptedException e) {
             System.out.println("Oops the bus is caught in an accident.");
         }
+    }
+
+    //Worker operations
+    public void goToWork(Cleaner c){
+        cleanerList.add(c);
+    }
+
+    public void goToWork(Mechanic m){
+        mechanicList.add(m);
     }
 }

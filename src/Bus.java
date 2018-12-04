@@ -19,8 +19,5 @@ public class Bus implements Runnable {
             e.printStackTrace();
         }
         depot.enterDepot(this);
-
-        depot.exitDepot(this);
-
     }
 }
