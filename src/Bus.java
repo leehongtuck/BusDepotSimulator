@@ -13,11 +13,6 @@ public class Bus implements Runnable {
 
     @Override
     public void run() {
-        try {
-            Thread.sleep((int)Math.floor(Math.random()*10000));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        depot.enterDepot(this);
+        depot.requestEntrance(this);
     }
 }

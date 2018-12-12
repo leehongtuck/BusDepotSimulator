@@ -9,7 +9,7 @@ public class Depot {
     private DepotTime time = new DepotTime();
     private Lane lane = new Lane();
     private boolean closingTime = false;
-    private Semaphore parkingSpace = new Semaphore(25);
+    private Semaphore parkingSpace;
 
     public Depot() {
         Thread threadT = new Thread(time);
@@ -55,52 +55,58 @@ public class Depot {
         private List<Bus> entranceList = new LinkedList<>();
         private List<Bus> exitList = new LinkedList<>();
 
+        public void queueEntrance(Bus bus){
+            synchronized (busWaitingList){
+                System.out.println("Bus " + bus.getId() + " is requesting entrance");
+                busWaitingList.add(bus);
+                entranceList.add(bus);
+            }
+        }
+
+        public void queueExit(Bus bus){
+            synchronized (busWaitingList){
+                busWaitingList.add(bus);
+                exitList.add(bus);
+//                if (busWaitingList.isEmpty()) {
+//                    busWaitingList.notify();
+//                }
+            }
+        }
+
         private void useLane(Bus bus) {
             System.out.println("Time " + time.getTime() + "- Bus " + bus.getId() + " is crossing the ramp");
             try {
                 if (bus instanceof MiniBus) {
-                    Thread.sleep(2500);
+                    Thread.sleep(1000);
                 } else {
-                    Thread.sleep(5000);
+                    Thread.sleep(2000);
                 }
             } catch (InterruptedException e) {
                 System.out.println("Oops the bus is caught in an accident.");
             }
         }
 
-        public void manageEntrance() {
+        //Manages the traffic flow of lane
+        private void manageTrafficFlow() {
             synchronized (busWaitingList) {
                 Bus b;
                 if (busWaitingList.isEmpty()) {
-                    try {
-                        busWaitingList.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        busWaitingList.wait();
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+                    return;
                 }
-                if (busWaitingList.get(0).equals(entranceList.get(0))) {
-                    b = busWaitingList.get(0);
-                    useLane(b);
+                b = busWaitingList.get(0);
+                useLane(b);
+                //if the bus of the frontmost queue is requesting to enter, let it enter and vice versa
+                if (b.equals(entranceList.get(0))) {
                     busWaitingList.remove(0);
                     entranceList.remove(0);
                     System.out.println("Time " + time.getTime() + "- Bus " + b.getId() + " has entered the depot.");
-                }
-            }
-        }
-
-        public void manageExit() {
-            synchronized (busWaitingList) {
-                Bus b;
-                if (busWaitingList.isEmpty()) {
-                    try {
-                        busWaitingList.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (busWaitingList.get(0).equals(exitList.get(0))) {
-                    b = busWaitingList.get(0);
-                    useLane(b);
+                    assignTask(b);
+                }else if(b.equals(exitList.get(0))){
                     busWaitingList.remove(0);
                     exitList.remove(0);
                     System.out.println("Time " + time.getTime() + "- Bus " + b.getId() + " has left the depot.");
@@ -111,8 +117,12 @@ public class Depot {
         @Override
         public void run() {
             while(!closingTime){
-                manageEntrance();
-                manageExit();
+                manageTrafficFlow();
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
         }
@@ -120,46 +130,48 @@ public class Depot {
 
     //Bus operations
     public void requestExit(Bus bus) {
-
+        lane.queueExit(bus);
     }
 
-    public synchronized void requestEnter(Bus bus) {
-        System.out.println("Time " + time.getTime() + "- Bus " + bus.getId() + " is requesting to enter the depot");
-        try {
-            wait();
-            busQueue.add(bus);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public void requestEntrance(Bus bus) {
+        lane.queueEntrance(bus);
+    }
+
+    //randomly assigns a task to the bus
+    private void assignTask(Bus bus){
+        if(Math.random()> 0.5){
+            System.out.println("clean bus");
+        }else {
+            System.out.println("repair bus");
         }
     }
 
 
     public void cleanBus(Bus bus) {
-        synchronized (this) {
-            if (cleanerList.size() == 0) {
-                try {
-                    bus.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+        if(cleanerList.isEmpty()){
+            parkBus();
         }
         synchronized (cleanerList) {
             Cleaner c = cleanerList.get(0);
             c.cleanBus(bus);
             cleanerList.remove(0);
             cleanerList.add(c);
-            exitDepot(bus);
+            requestExit(bus);
         }
 
     }
 
+    public void parkBus(){
+
+    }
+
     public synchronized void serviceBus(Bus bus) {
-        if (cleanerList.size() > 0) {
-            cleanerList.get(0).cleanBus(bus);
-            cleanerList.remove(0);
-        } else {
-            System.out.println("Bus " + bus + " is waiting to be cleaned at the waiting bay.");
+        synchronized (mechanicList) {
+            Mechanic m = mechanicList.get(0);
+            m.repairBus(bus);
+            mechanicList.remove(0);
+            mechanicList.add(m);
+            requestExit(bus);
         }
 
     }
