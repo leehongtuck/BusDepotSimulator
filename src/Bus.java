@@ -6,7 +6,7 @@ public class Bus implements Runnable {
 
 
     public enum BusState{
-        enter,exit,inside,outside
+        enter,exit,inside,outside,clean,repair
     }
 
     public Bus(int id, Depot depot) {
@@ -27,12 +27,27 @@ public class Bus implements Runnable {
         this.state = state;
     }
 
+
     @Override
     public void run() {
-        if(Math.random()<0.75)
-            depot.requestEntrance(this);
+        depot.requestEntrance(this);
+
+        //While bus is not in depot, wait.
+        synchronized (this){
+            while (!state.equals(BusState.inside)){
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        //Randomly choose to clean or repair bus
+        if(Math.random()>0.5)
+            depot.cleanBus(this);
         else
-            depot.requestExit(this);
+            depot.repairBus(this);
 
     }
 }

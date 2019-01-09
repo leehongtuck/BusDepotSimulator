@@ -16,12 +16,13 @@ public class Mechanic implements Runnable {
     }
 
     public void repairBus(Bus bus){
-        System.out.println("Bus " + bus + " is being repaired!");
+        System.out.println("Bus " + bus.getId() + " is being repaired by mechanic " + id);
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("Bus " + bus + " finished repairing!");
+        System.out.println("Bus " + bus.getId() + " finished repairing!");
+        depot.requestExit(bus);
     }
 }

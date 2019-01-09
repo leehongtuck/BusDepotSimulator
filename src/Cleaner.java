@@ -16,12 +16,14 @@ public class Cleaner implements Runnable {
     }
 
     public void cleanBus(Bus bus){
-        System.out.println("Bus " + bus + " is being cleaned!");
+        System.out.println("Bus " + bus.getId() + " is being cleaned by cleaner " + id);
         try {
-            Thread.sleep(10000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("Bus " + bus + " finished cleaning!");
+
+        System.out.println("Bus " + bus.getId() + " finished cleaning!");
+        depot.requestExit(bus);
     }
 }
