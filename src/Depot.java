@@ -1,91 +1,51 @@
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class Depot {
-    private final double TIMEUNIT = 0.01;
-
-    private List<Bus> busParking = new LinkedList<>();
+    public List<Bus> busInDepot = new ArrayList<>();
+    private List<Bus> busEntered = new ArrayList<>();
     private int maxSpace;
     private int parkingSpace;
 
     //List of available cleaner and mechanics
-    private Queue<Cleaner> cleanerList = new LinkedList<>();
-    private Queue<Mechanic> mechanicList = new LinkedList<>();
+    private List<Cleaner> cleanerList = new ArrayList<>();
+    private List<Mechanic> mechanicList = new ArrayList<>();
+    private Queue<Cleaner> availableCleanerList = new LinkedList<>();
+    private Queue<Mechanic> availableMechanicList = new LinkedList<>();
     private int waitClean = 0;
     private int waitRepair = 0;
 
     //Depot operations information
-    private DepotTime time = new DepotTime();
+    private DepotTime time = new DepotTime(this);
     private Lane lane = new Lane();
     private boolean closingTime = false;
-    private boolean isEmpty = false;
-
-    //To keep track of time in depot
-    private class DepotTime implements Runnable {
-        private final int OPENHOUR = 8;
-        private double time = 0;
-        private int hour = 0;
-        private int minute = 0;
-
-        @Override
-        public void run() {
-            for (int i = 0; i < 480; i++) {
-                increaseTime();
-                try {
-                    Thread.sleep((long)(1000 * TIMEUNIT));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            synchronized (lane) {
-                if(lane.bridgeQueue.isEmpty()){
-                    lane.notify();
-                }
-                System.out.println("Notifying closing time!");
-                closingTime = true;
-            }
-        }
-
-        private void increaseTime() {
-            time++;
-            hour = OPENHOUR + (int) time / 60;
-            minute = (int) time % 60;
-        }
-
-        private String getTime() {
-            return String.format("%02d", hour) + ":" + String.format("%02d", minute);
-        }
-    }
+    private volatile boolean isEmpty = false;
+    private volatile boolean isRaining = false;
 
     //The lane operations in depot
     private class Lane implements Runnable {
         private Queue<Bus> bridgeQueue = new LinkedList<>();
         private Queue<Bus> pendingList = new LinkedList<>();
-        private boolean isOperating = true;
 
         private synchronized void queueEntrance(Bus bus) {
             if(!closingTime){
                 if (parkingSpace > 0) {
-                    System.out.println("Bus " + bus.getId() + " is requesting entrance");
+                    System.out.println(DepotTime.getTime() + bus + " is requesting entrance");
                     if (bridgeQueue.isEmpty()) {
                         notify();
                     }
                     bridgeQueue.add(bus);
                     parkingSpace--;
                 } else {
-                    System.out.println("Oops the parking bay is full! Bus " + bus.getId() + " might need to wait for awhile.");
+                    System.out.println(DepotTime.getTime() + "Oops the parking bay is full! " + bus + " might need to wait for awhile.");
                     pendingList.offer(bus);
                 }
             }else {
-                System.out.println("Oops! The depot is closing soon! Bus " + bus.getId() + ", please come back tomorrow, sorry!");
+                System.out.println(DepotTime.getTime() + "Oops! The depot is closing soon! " + bus + ", please come back tomorrow, sorry!");
             }
         }
 
         private synchronized void queueExit(Bus bus) {
-            System.out.println("Bus " + bus.getId() + " is requesting exit");
+            System.out.println(DepotTime.getTime() + bus + " is requesting exit");
             if (bridgeQueue.isEmpty()) {
                 notify();
             }
@@ -99,6 +59,9 @@ public class Depot {
                 try {
                     //System.out.println("waiting");
                     wait();
+                    if(closingTime){
+                        break;
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -114,15 +77,18 @@ public class Depot {
         }
 
         private void prepareClosure(){
-            System.out.println("Closing time, no more buses allowed to queue for entrance!");
+            System.out.println(DepotTime.getTime() + "Closing time, no more buses allowed to queue for entrance!");
             while (!pendingList.isEmpty()){
-                pendingList.remove();
+                Bus bus = pendingList.remove();
+                bus.setState(Bus.BusState.outside);
+                synchronized (bus){
+                    bus.notify();
+                }
             }
 
             //While the depot still have buses, continue operating
             while (!isEmpty){
                 if(parkingSpace == maxSpace && bridgeQueue.isEmpty()){
-                    System.out.println("Im here");
                     isEmpty = true;
                     return;
                 }else if(bridgeQueue.isEmpty()){
@@ -133,20 +99,20 @@ public class Depot {
                     }
                 }
                 useBridge();
-                //System.out.println(bridgeQueue.size() + " buses left! " + parkingSpace + " parking left" );
             }
         }
 
         private void useBridge(){
+            System.out.println("Buses queueing for bridge: " + bridgeQueue);
             Bus bus = bridgeQueue.remove();
             //let the bus travel on lane
-            System.out.println("Time " + time.getTime() + "- Bus " + bus.getId() + " is crossing the ramp");
+            System.out.println(DepotTime.getTime() + bus + " is crossing the ramp");
             try {
                 if (bus instanceof MiniBus) {
-                    System.out.println("Bus " + bus.getId() + " is a minibus!");
-                    Thread.sleep((long)(250*TIMEUNIT));
+                    System.out.println(bus + " is a minibus!");
+                    Thread.sleep((long)(250* DepotTime.TIMESCALE));
                 } else {
-                    Thread.sleep((long)(500*TIMEUNIT));
+                    Thread.sleep((long)(500* DepotTime.TIMESCALE));
                 }
             } catch (InterruptedException e) {
                 System.out.println("Oops the bus is caught in an accident.");
@@ -154,24 +120,29 @@ public class Depot {
 
             //if the bus of the front most queue is requesting to enter, let it enter and vice versa, but whether any of the list is empty
             if (bus.getState().equals(Bus.BusState.enter)) {
-                System.out.println("Time " + time.getTime() + "- Bus " + bus.getId() + " has entered the depot.");
+                System.out.println(DepotTime.getTime() + bus + " has entered the depot.");
                 bus.setState(Bus.BusState.inside);
-                busParking.add(bus);
+                bus.startTimer();
+                busInDepot.add(bus);
+                busEntered.add(bus);
                 synchronized (bus){
                     bus.notify();
                 }
             } else if (bus.getState().equals(Bus.BusState.exit)) {
-                System.out.println("Time " + time.getTime() + "- Bus " + bus.getId() + " has left the depot.");
+                System.out.println(DepotTime.getTime() + bus + " has left the depot.");
                 bus.setState(Bus.BusState.outside);
+                busInDepot.remove(bus);
                 if(pendingList.isEmpty()){
                     parkingSpace++;
                 }else {
                     bridgeQueue.offer(pendingList.remove());
                 }
             }
-            System.out.println(bridgeQueue.size() + " buses left! " + parkingSpace + " parking left" );
-        }
 
+            System.out.println("Parking space left: "+ parkingSpace);
+            System.out.println("Buses in depot: " + busInDepot);
+            //System.out.println(bridgeQueue.size() + "Buses left! " + parkingSpace + " parking left" );
+        }
 
 
         @Override
@@ -179,12 +150,14 @@ public class Depot {
             while (!isEmpty) {
                 manageTrafficFlow();
             }
-            System.out.println("Alright depot closed.");
+            sanityCheck();
+
+
         }
     }
 
     public Depot() {
-        maxSpace = 50;
+        maxSpace = 10;
         parkingSpace = maxSpace;
         Thread threadT = new Thread(time);
         threadT.start();
@@ -209,60 +182,196 @@ public class Depot {
     //Worker operations
     public void goToWork(Cleaner c) {
         synchronized (cleanerList){
-            if (cleanerList.isEmpty()&& waitClean >0){
-                cleanerList.notify();
+            cleanerList.add(c);
+        }
+        standbyForWork(c);
+    }
+
+    private void standbyForWork(Cleaner c){
+        synchronized (availableCleanerList){
+            if (availableCleanerList.isEmpty()&& waitClean >0){
+                availableCleanerList.notify();
             }
-            cleanerList.offer(c);
+            availableCleanerList.offer(c);
         }
     }
 
     public void cleanBus(Bus bus) {
-        System.out.println("Bus " + bus.getId() + " is requesting to be cleaned!");
+        System.out.println(DepotTime.getTime() + bus + " is requesting to be cleaned!");
         Cleaner c;
-        synchronized (cleanerList) {
-            while (cleanerList.isEmpty()) {
-                System.out.println("Oops there are no cleaners available now!");
+
+        //If bus requests to be cleaned after closing time, ask to come back another day.
+        if(closingTime){
+            System.out.println(DepotTime.getTime() +"Sorry " + bus + ". Depot is closed now. Please come back tomorrow to be cleaned.");
+            requestExit(bus);
+            return;
+        }
+
+        synchronized (availableCleanerList) {
+            while (availableCleanerList.isEmpty() || isRaining) {
+                if(availableCleanerList.isEmpty()){
+                    System.out.println(DepotTime.getTime() + "Oops there are no cleaners available now! Bus "
+                            + bus.getId() + " please wait!");
+                }else if(isRaining){
+                    System.out.println(DepotTime.getTime() + "It is raining now! Cleaning can't be conducted! Bus " +
+                            bus.getId() +" please wait!");
+                }
+
                 waitClean++;
                 try {
-                    cleanerList.wait();
+                    availableCleanerList.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                //if during closing time it still rains, leave the depot
+                if(closingTime && isRaining){
+                    requestExit(bus);
+                    return;
+                }
+                System.out.println(DepotTime.getTime() + "Finally there are cleaners available now! Bus "
+                        + bus.getId() + " proceed!");
                 waitClean--;
             }
-            c = cleanerList.remove();
+            c = availableCleanerList.remove();
         }
+        System.out.println(DepotTime.getTime() + bus + " is heading to the cleaning bay!");
         c.cleanBus(bus);
-        goToWork(c);
+        standbyForWork(c);
     }
 
     public void goToWork(Mechanic m) {
         synchronized (mechanicList){
-            if(cleanerList.isEmpty()&&waitRepair >0){
-                mechanicList.notify();
+            mechanicList.add(m);
+        }
+        standbyForWork(m);
+    }
+
+    private void standbyForWork(Mechanic m){
+        synchronized (availableMechanicList){
+            if(availableMechanicList.isEmpty()&&waitRepair >0){
+                availableMechanicList.notify();
             }
-            mechanicList.offer(m);
+            availableMechanicList.offer(m);
         }
     }
 
-    public void repairBus(Bus bus) {
-        System.out.println("Bus " + bus.getId() + " is requesting to be serviced!");
+    public void serviceBus(Bus bus) {
+        System.out.println(DepotTime.getTime() + bus + " is requesting to be serviced!");
+        if(closingTime){
+            System.out.println(DepotTime.getTime() + "Sorry " + bus + ". Depot is closed now. Please come back tomorrow to be serviced.");
+            requestExit(bus);
+            return;
+        }
         Mechanic m;
-        synchronized (mechanicList) {
-            while (mechanicList.isEmpty()) {
-                System.out.println("Oops there are no mechanics available now!");
+        synchronized (availableMechanicList) {
+            while (availableMechanicList.isEmpty()) {
+                System.out.println(DepotTime.getTime() + "Oops there are no mechanics available now! Bus "
+                        + bus.getId() + " please wait!");
                 waitRepair++;
                 try {
-                    mechanicList.wait();
+                    availableMechanicList.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                System.out.println(DepotTime.getTime() + "Finally there are mechanics available now! Bus "
+                        + bus.getId() + " proceed!");
                 waitRepair--;
             }
-            m = mechanicList.remove();
+            m = availableMechanicList.remove();
         }
-        m.repairBus(bus);
-        goToWork(m);
+        System.out.println(DepotTime.getTime() + bus + " is heading to the servicing bay!");
+        m.serviceBus(bus);
+        standbyForWork(m);
     }
+
+    public boolean isEmpty(){
+        return isEmpty;
+    }
+
+    public boolean isRaining(){
+        return isRaining;
+    }
+
+    public void changeWeather(){
+        if(!isRaining){
+            isRaining = true;
+            System.out.println(DepotTime.getTime()+ "Holy shit is raining!");
+        }else {
+            isRaining = false;
+            for (Cleaner c: cleanerList) {
+                synchronized (c){
+                    c.notify();
+                }
+            }
+            System.out.println(DepotTime.getTime() + "Finally it's sunny again!");
+        }
+
+    }
+
+    public boolean getClosingTime(){
+        return closingTime;
+    }
+
+    //Close depot
+    public synchronized void setClosingTime(){
+        synchronized (lane) {
+            System.out.println(DepotTime.getTime() + "Notifying closing time!");
+            closingTime = true;
+            if(lane.bridgeQueue.isEmpty()){
+                lane.notify();
+            }
+        }
+        if(isRaining && waitClean > 0){
+            System.out.println(DepotTime.getTime() +
+                    "Sorry buses, those waiting to be cleaned please return tomorrow due to bad weather.");
+            synchronized (cleanerList){
+                for (Cleaner c: cleanerList) {
+                    synchronized (c){
+                        c.notify();
+                    }
+                }
+            }
+
+            synchronized (availableCleanerList){
+                availableCleanerList.notifyAll();
+            }
+
+        }
+    }
+
+    public void sanityCheck(){
+        System.out.println("Alright depot closed.\n");
+        System.out.println("Time for sanity checks!");
+
+        System.out.println("Total bus served: " + busEntered.size());
+        int max = 0;
+        int min = 0;
+        int sum = 0;
+        int avg;
+        for(Bus bus:busEntered){
+            if( max==0 && min ==0){
+                max = bus.getWaitingTime();
+                min = max;
+            }else if(bus.getWaitingTime()>max){
+                max = bus.getWaitingTime();
+            }else if(bus.getWaitingTime()<min){
+                min = bus.getWaitingTime();
+            }
+
+            sum+= bus.getWaitingTime();
+        }
+        avg = sum/busEntered.size();
+        System.out.println("Bus waiting times:");
+        System.out.println("Maximum - " + (int)max/60 + " hour(s) " + max%60 + " minute(s).");
+        System.out.println("Minimum - " + (int)min/60 + " hour(s) " + min%60 + " minute(s).");
+        System.out.println("Average - " + (int)avg/60 + " hour(s) " + avg%60 + " minute(s).");
+        System.out.println();
+
+        System.out.println("Workers present:");
+        System.out.println("Cleaner(s) - " + cleanerList.size());
+        System.out.println("Mechanic(s) - " + mechanicList.size());
+    }
+
+
 
 }

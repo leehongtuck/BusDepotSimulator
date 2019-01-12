@@ -2,8 +2,29 @@ public class Bus implements Runnable {
     private int id;
     private Depot depot;
     private BusState state;
+    private int waitingTime = 0;
 
+    private class BusTimer implements Runnable{
+        @Override
+        public void run() {
+            while (!state.equals(BusState.outside)){
+                waitingTime++;
+                try {
+                    Thread.sleep((long)(1000*DepotTime.TIMESCALE));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
+    public void startTimer(){
+        new Thread(new BusTimer()).start();
+    }
+
+    public int getWaitingTime(){
+        return waitingTime;
+    }
 
     public enum BusState{
         enter,exit,inside,outside,clean,repair
@@ -30,6 +51,12 @@ public class Bus implements Runnable {
 
     @Override
     public void run() {
+        try {
+            Thread.sleep((long)(Math.random()*1000));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         depot.requestEntrance(this);
 
         //While bus is not in depot, wait.
@@ -38,7 +65,12 @@ public class Bus implements Runnable {
                 try {
                     wait();
                 } catch (InterruptedException e) {
+
                     e.printStackTrace();
+                }
+                if(depot.getClosingTime()){
+                    //System.out.println("Ok Bus " + id + " cant wait anymore, returning tomorrow.");
+                    return;
                 }
             }
         }
@@ -47,7 +79,11 @@ public class Bus implements Runnable {
         if(Math.random()>0.5)
             depot.cleanBus(this);
         else
-            depot.repairBus(this);
+            depot.serviceBus(this);
 
+    }
+
+    public String toString(){
+        return "Bus "+id;
     }
 }

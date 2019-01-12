@@ -16,14 +16,32 @@ public class Cleaner implements Runnable {
     }
 
     public void cleanBus(Bus bus){
-        System.out.println("Bus " + bus.getId() + " is being cleaned by cleaner " + id);
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " is being cleaned by cleaner " + id);
+        for(int i = 0; i < 10; i++){
+            try {
+                Thread.sleep((long)(30000 * DepotTime.TIMESCALE)/10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            synchronized (this){
+                while (depot.isRaining()){
+                    System.out.println(DepotTime.getTime() + "Oops it's raining, the cleaning of bus " + bus.getId() + " cannot continue!");
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if(depot.isRaining() && depot.getClosingTime()){
+                        depot.requestExit(bus);
+                        return;
+                    }
+                    System.out.println(DepotTime.getTime() + "Yay the rain stopped, continue cleaning bus " + bus.getId() + "!");
+                }
+            }
         }
 
-        System.out.println("Bus " + bus.getId() + " finished cleaning!");
+        System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " finished cleaning!");
         depot.requestExit(bus);
     }
 }
