@@ -1,8 +1,8 @@
 public class Bus implements Runnable {
-    private int id;
-    private Depot depot;
-    private BusState state;
-    private int waitingTime = 0;
+    protected int id;
+    protected Depot depot;
+    protected BusState state;
+    protected int waitingTime = 0;
 
     private class BusTimer implements Runnable{
         @Override
