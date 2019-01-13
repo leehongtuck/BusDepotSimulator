@@ -16,7 +16,7 @@ public class DepotTime implements Runnable {
     @Override
     public void run() {
         for (int i = 0; i < (7.5* 60); i++){
-            if(Math.random()<0.002){
+            if(Math.random()<0.005){
                 depot.changeWeather();
             }
             increaseTime();

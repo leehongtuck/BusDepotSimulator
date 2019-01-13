@@ -2,6 +2,8 @@ public class Bus implements Runnable {
     private int id;
     private Depot depot;
     private BusState state;
+    private BusAction action;
+    private boolean isWaiting;
     private int waitingTime = 0;
 
     private class BusTimer implements Runnable{
@@ -27,13 +29,23 @@ public class Bus implements Runnable {
     }
 
     public enum BusState{
-        enter,exit,inside,outside,clean,repair
+        enter,exit,inside,outside
+    }
+
+    public enum BusAction{
+        clean,repair
     }
 
     public Bus(int id, Depot depot) {
         this.id = id;
         this.depot = depot;
         state = BusState.outside;
+        isWaiting = false;
+        if(Math.random()>0.5){
+            action = BusAction.clean;
+        }else{
+            action = BusAction.repair;
+        }
     }
 
     public int getId() {
@@ -48,6 +60,17 @@ public class Bus implements Runnable {
         this.state = state;
     }
 
+    public BusAction getAction(){
+        return action;
+    }
+
+    public boolean isWaiting() {
+        return isWaiting;
+    }
+
+    public void setWaiting(boolean isWaiting){
+        this.isWaiting = isWaiting;
+    }
 
     @Override
     public void run() {
@@ -76,7 +99,7 @@ public class Bus implements Runnable {
         }
 
         //Randomly choose to clean or repair bus
-        if(Math.random()>0.5)
+        if(action.equals(BusAction.clean))
             depot.cleanBus(this);
         else
             depot.serviceBus(this);
