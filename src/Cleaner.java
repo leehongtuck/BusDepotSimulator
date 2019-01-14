@@ -25,7 +25,6 @@ public class Cleaner implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
             synchronized (this){
                 while (depot.isRaining()){
                     System.out.println(DepotTime.getTime() + "Oops it's raining, the cleaning of bus " + bus.getId() + " cannot continue!");
@@ -34,7 +33,7 @@ public class Cleaner implements Runnable {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    if(depot.isRaining() && depot.getClosingTime()){
+                    if(depot.isRaining() && depot.isClosingTime()){
                         depot.requestExit(bus);
                         return;
                     }
@@ -43,8 +42,10 @@ public class Cleaner implements Runnable {
             }
         }
 
-        System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " finished cleaning!");
-        depot.standbyForWork(this);
-        depot.requestExit(bus);
+        synchronized (this){
+            System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " finished cleaning!");
+            depot.requestExit(bus);
+        }
+
     }
 }

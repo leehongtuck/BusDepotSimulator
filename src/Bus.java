@@ -59,6 +59,10 @@ public class Bus implements Runnable {
 
         depot.requestEntrance(this);
 
+        if(depot.isClosingSoon()){
+            return;
+        }
+
         //While bus is not in depot, wait.
         synchronized (this){
             while (!state.equals(BusState.inside)){
@@ -68,8 +72,7 @@ public class Bus implements Runnable {
 
                     e.printStackTrace();
                 }
-                if(depot.getClosingTime()){
-                    //System.out.println("Ok Bus " + id + " cant wait anymore, returning tomorrow.");
+                if(depot.isClosingSoon()){
                     return;
                 }
             }

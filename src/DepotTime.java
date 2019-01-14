@@ -20,11 +20,15 @@ public class DepotTime implements Runnable {
                 depot.changeWeather();
             }
             increaseTime();
-            try {
-            Thread.sleep((long)(1000 * TIMESCALE));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        }
+
+        depot.setBlockEntrance();
+
+        for (int i = 0; i < (0.5* 60); i++){
+            if(Math.random()<0.002){
+                depot.changeWeather();
             }
+            increaseTime();
         }
 
         depot.setClosingTime();
@@ -40,12 +44,20 @@ public class DepotTime implements Runnable {
     }
 
     private void increaseTime() {
+
+
         if(time >= 24* 60){
             time = -8 * 60;
         }
         time++;
         hour = OPENHOURS + (int) time / 60;
         minute = Math.abs((int) time % 60);
+
+        try {
+            Thread.sleep((long)(1000 * TIMESCALE));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public static String getTime() {

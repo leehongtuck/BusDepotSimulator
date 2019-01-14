@@ -2,6 +2,7 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
+
         Scanner sc = new Scanner(System.in);
 
         System.out.println("Bus Depot Simulator v0.1\n");
@@ -33,8 +34,20 @@ public class Main {
             new Thread(new Mechanic(i, d)).start();
         }
 
+        Thread t[] = new Thread[numBus];
         for(int i = 0; i<numBus; i++){
-            new Thread(new Bus(i, d)).start();
+            t[i] = new Thread(new Bus(i, d));
+            t[i].start();
+        }
+
+        d.threadR.join();
+        int count = 0;
+        for(Thread th: t){
+
+            if(th.isAlive()){
+                System.out.println("Bus " + count + " still alive gg.");
+            }
+            count++;
         }
 
 //        Thread t = new Thread(new MiniBus(5,d));

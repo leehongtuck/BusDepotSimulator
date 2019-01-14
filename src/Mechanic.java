@@ -35,7 +35,6 @@ public class Mechanic implements Runnable {
             e.printStackTrace();
         }
 
-
         if(Math.random()<0.2){
             System.out.println(DepotTime.getTime() + "Oh no! Bus " + bus.getId() + " is found to have a mechanical failure! Fixing it ASAP!");
             try {
@@ -47,8 +46,6 @@ public class Mechanic implements Runnable {
         }else {
             System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " finished servicing!");
         }
-
-        depot.standbyForWork(this);
 
         if(Math.random()<0.2){
             System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " is too dirty to be driven!. Go to cleaning bay ASAP!");

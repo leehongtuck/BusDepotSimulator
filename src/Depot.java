@@ -18,8 +18,10 @@ public class Depot {
 
     //Depot operations information
     private DepotTime time = new DepotTime(this);
-    private Ramp ramp = new Ramp();
-    private boolean closingTime = false;
+    public Ramp ramp = new Ramp();
+    Thread threadR = new Thread(ramp);
+    private volatile boolean closingSoon = false;
+    private volatile boolean closingTime = false;
     private volatile boolean isEmpty = false;
     private volatile boolean isRaining = false;
 
@@ -29,7 +31,7 @@ public class Depot {
         private Queue<Bus> pendingList = new LinkedList<>();
 
         private synchronized void queueEntrance(Bus bus) {
-            if(!closingTime){
+            if(!closingSoon){
                 if (parkingSpace > 0) {
                     System.out.println(DepotTime.getTime() + bus + " is requesting entrance");
                     if (bridgeQueue.isEmpty()) {
@@ -61,7 +63,7 @@ public class Depot {
                 try {
                     //System.out.println("waiting");
                     wait();
-                    if(closingTime){
+                    if(closingSoon){
                         break;
                     }
                 } catch (InterruptedException e) {
@@ -69,7 +71,7 @@ public class Depot {
                 }
             }
 
-            if (Depot.this.closingTime) {
+            if (closingSoon) {
                 prepareClosure();
                 System.out.println("Prepare to close");
                 return;
@@ -79,7 +81,7 @@ public class Depot {
         }
 
         private void prepareClosure(){
-            System.out.println(DepotTime.getTime() + "Closing time, no more buses allowed to queue for entrance!");
+            System.out.println(DepotTime.getTime() + "Depot is closing soon, buses in waiting area outside please return tomorrow!");
             while (!pendingList.isEmpty()){
                 Bus bus = pendingList.remove();
                 bus.setState(Bus.BusState.outside);
@@ -90,12 +92,16 @@ public class Depot {
 
             //While the depot still have buses, continue operating
             while (!isEmpty){
-                if(parkingSpace == maxSpace && bridgeQueue.isEmpty()){
+                if(parkingSpace == maxSpace && bridgeQueue.isEmpty()&& closingTime){
                     isEmpty = true;
                     return;
                 }else if(bridgeQueue.isEmpty()){
                     try {
+                        System.out.println("Waiting for close");
                         wait();
+                        if(bridgeQueue.isEmpty()){
+                            continue;
+                        }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -110,9 +116,10 @@ public class Depot {
             //let the bus travel on ramp
 
             //remove any buses queueing to enter
-            if(bus.getState().equals(Bus.BusState.enter)&& closingTime){
-                System.out.println("Sorry " + bus + ". Depot is closing, please come back tomorrow.");
+            if(bus.getState().equals(Bus.BusState.enter)&& closingSoon){
+                System.out.println("Sorry " + bus + ". Depot is closing soon, please come back tomorrow.");
                 bus.setState(Bus.BusState.outside);
+                parkingSpace++;
                 return;
             }
 
@@ -170,10 +177,7 @@ public class Depot {
         serviceDuration = durService;
         Thread threadT = new Thread(time);
         threadT.start();
-        Thread threadL = new Thread(ramp);
-        threadL.start();
-//        Thread threadTask = new Thread(task);
-//        threadTask.start();
+        threadR.start();
     }
 
     public void requestEntrance(Bus bus) {
@@ -185,8 +189,6 @@ public class Depot {
         bus.setState(Bus.BusState.exit);
         ramp.queueExit(bus);
     }
-
-
 
     //Worker operations
     public void goToWork(Cleaner c) {
@@ -206,6 +208,7 @@ public class Depot {
                 availableCleanerList.notify();
             }
             availableCleanerList.offer(c);
+            System.out.println("Added cleaner to standby: " + availableCleanerList);
         }
     }
 
@@ -251,7 +254,9 @@ public class Depot {
 
             }
             c = availableCleanerList.remove();
+            System.out.println("Available cleaners: " + availableCleanerList);
         }
+
         System.out.println(DepotTime.getTime() + bus + " is heading to the cleaning bay!");
         c.cleanBus(bus);
         standbyForWork(c);
@@ -352,15 +357,31 @@ public class Depot {
 
     }
 
-    public boolean getClosingTime(){
+    public boolean isClosingSoon() {
+        return closingSoon;
+    }
+
+    public boolean isClosingTime(){
         return closingTime;
+    }
+
+    public void setBlockEntrance(){
+        synchronized (ramp) {
+            System.out.println(DepotTime.getTime() + "Depot is closing in 30 minutes!");
+            closingSoon = true;
+            if(ramp.bridgeQueue.isEmpty()){
+                ramp.notify();
+            }
+        }
     }
 
     //Close depot
     public synchronized void setClosingTime(){
-        synchronized (ramp) {
-            System.out.println(DepotTime.getTime() + "Notifying closing time!");
-            closingTime = true;
+
+        closingTime = true;
+        System.out.println(DepotTime.getTime() + "Depot is closing now!");
+
+        synchronized (ramp){
             if(ramp.bridgeQueue.isEmpty()){
                 ramp.notify();
             }
