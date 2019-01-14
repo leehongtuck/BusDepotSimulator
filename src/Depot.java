@@ -18,13 +18,13 @@ public class Depot {
 
     //Depot operations information
     private DepotTime time = new DepotTime(this);
-    private Lane lane = new Lane();
+    private Ramp ramp = new Ramp();
     private boolean closingTime = false;
     private volatile boolean isEmpty = false;
     private volatile boolean isRaining = false;
 
-    //The lane operations in depot
-    private class Lane implements Runnable {
+    //The ramp operations in depot
+    private class Ramp implements Runnable {
         private Queue<Bus> bridgeQueue = new LinkedList<>();
         private Queue<Bus> pendingList = new LinkedList<>();
 
@@ -54,7 +54,7 @@ public class Depot {
             bridgeQueue.offer(bus);
         }
 
-        //Manages the traffic flow of lane
+        //Manages the traffic flow of ramp
         private synchronized void manageTrafficFlow() {
             //check whether traffic is empty or there are no parking space at the same time no buses exiting
             while (bridgeQueue.isEmpty()) {
@@ -107,7 +107,7 @@ public class Depot {
         private void useBridge(){
             System.out.println("Buses queueing for bridge: " + bridgeQueue);
             Bus bus = bridgeQueue.remove();
-            //let the bus travel on lane
+            //let the bus travel on ramp
             System.out.println(DepotTime.getTime() + bus + " is crossing the ramp");
             try {
                 if (bus instanceof MiniBus) {
@@ -143,7 +143,6 @@ public class Depot {
 
             System.out.println("Parking space left: "+ parkingSpace);
             System.out.println("Buses in depot: " + busInDepot);
-            //System.out.println(bridgeQueue.size() + "Buses left! " + parkingSpace + " parking left" );
         }
 
 
@@ -153,8 +152,6 @@ public class Depot {
                 manageTrafficFlow();
             }
             sanityCheck();
-
-
         }
     }
 
@@ -165,7 +162,7 @@ public class Depot {
         serviceDuration = durService;
         Thread threadT = new Thread(time);
         threadT.start();
-        Thread threadL = new Thread(lane);
+        Thread threadL = new Thread(ramp);
         threadL.start();
 //        Thread threadTask = new Thread(task);
 //        threadTask.start();
@@ -173,12 +170,12 @@ public class Depot {
 
     public void requestEntrance(Bus bus) {
         bus.setState(Bus.BusState.enter);
-        lane.queueEntrance(bus);
+        ramp.queueEntrance(bus);
     }
 
     public void requestExit(Bus bus) {
         bus.setState(Bus.BusState.exit);
-        lane.queueExit(bus);
+        ramp.queueExit(bus);
     }
 
 
@@ -345,11 +342,11 @@ public class Depot {
 
     //Close depot
     public synchronized void setClosingTime(){
-        synchronized (lane) {
+        synchronized (ramp) {
             System.out.println(DepotTime.getTime() + "Notifying closing time!");
             closingTime = true;
-            if(lane.bridgeQueue.isEmpty()){
-                lane.notify();
+            if(ramp.bridgeQueue.isEmpty()){
+                ramp.notify();
             }
         }
 
