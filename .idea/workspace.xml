@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0748af72-ae55-440a-9ecf-dd8636529fde" name="Default Changelist" comment="shorten code">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/BusDepotSimulator/Depot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/BusDepotSimulator/Depot.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Depot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Depot.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -19,19 +21,16 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Depot.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="612">
-              <caret line="178" column="42" selection-start-line="178" selection-start-column="42" selection-end-line="178" selection-end-column="42" />
+            <state relative-caret-position="210">
+              <caret line="75" column="13" lean-forward="true" selection-start-line="75" selection-start-column="13" selection-end-line="75" selection-end-column="13" />
               <folding>
-                <element signature="class#Ramp#0;class#Depot#0" />
-                <element signature="method#queueEntrance#0;class#Ramp#0;class#Depot#0" />
-                <element signature="method#queueExit#0;class#Ramp#0;class#Depot#0" />
+                <element signature="method#useBridge#0;class#Ramp#0;class#Depot#0" />
                 <element signature="method#requestEntrance#0;class#Depot#0" />
                 <element signature="method#requestExit#0;class#Depot#0" />
                 <element signature="method#goToWork#0;class#Depot#0" />
-                <element signature="method#cleanBus#0;class#Depot#0" />
                 <element signature="method#goToWork#1;class#Depot#0" />
                 <element signature="e#11703#11704#0" expanded="true" />
                 <element signature="e#11735#11736#0" expanded="true" />
@@ -48,11 +47,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="169">
-              <caret line="42" column="4" selection-start-line="42" selection-start-column="4" selection-end-line="50" selection-end-column="11" />
+            <state relative-caret-position="152">
+              <caret line="20" column="19" lean-forward="true" selection-start-line="20" selection-start-column="19" selection-end-line="20" selection-end-column="19" />
             </state>
           </provider>
         </entry>
@@ -138,8 +137,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>OK IM</find>
-      <find>&quot;Time &quot; +</find>
       <find>&quot;-</find>
       <find>&quot;</find>
       <find>ho</find>
@@ -167,6 +164,9 @@
       <find>available cl</find>
       <find>Added cleaner to standby: [Cleaner@7633d9b5</find>
       <find>bus 9012</find>
+      <find>bus 22</find>
+      <find>mechanical fai</find>
+      <find>bus 64</find>
     </findStrings>
     <replaceStrings>
       <replace>&quot;Time &quot; + clock.getTime()</replace>
@@ -189,8 +189,8 @@
         <option value="$PROJECT_DIR$/src/DepotTime.java" />
         <option value="$PROJECT_DIR$/src/Bus.java" />
         <option value="$PROJECT_DIR$/src/Cleaner.java" />
-        <option value="$PROJECT_DIR$/src/Depot.java" />
         <option value="$PROJECT_DIR$/src/Main.java" />
+        <option value="$PROJECT_DIR$/src/Depot.java" />
       </list>
     </option>
   </component>
@@ -201,10 +201,9 @@
     </treeState>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="105" />
-    <option name="y" value="25" />
+    <option name="x" value="9" />
     <option name="width" value="1918" />
-    <option name="height" value="1038" />
+    <option name="height" value="988" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -236,7 +235,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="android.sdk.path" value="$USER_HOME$/AppData/Local/Android/Sdk" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1547460404250" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1547462536827" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="AndroidSdkUpdater" />
@@ -336,7 +335,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="178590000" />
+    <option name="totallyTimeSpent" value="179893000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -348,7 +347,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="105" y="25" width="1918" height="1038" extended-state="0" />
+    <frame x="9" y="0" width="1918" height="988" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49182004" visible="true" weight="0.19321851" />
@@ -360,7 +359,7 @@
       <window_info id="Favorites" order="6" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49946696" weight="0.32910052" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.496875" visible="true" weight="0.4325782" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.496875" visible="true" weight="0.45724058" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -538,16 +537,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Depot.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="612">
-          <caret line="178" column="42" selection-start-line="178" selection-start-column="42" selection-end-line="178" selection-end-column="42" />
+        <state relative-caret-position="210">
+          <caret line="75" column="13" lean-forward="true" selection-start-line="75" selection-start-column="13" selection-end-line="75" selection-end-column="13" />
           <folding>
-            <element signature="class#Ramp#0;class#Depot#0" />
-            <element signature="method#queueEntrance#0;class#Ramp#0;class#Depot#0" />
-            <element signature="method#queueExit#0;class#Ramp#0;class#Depot#0" />
+            <element signature="method#useBridge#0;class#Ramp#0;class#Depot#0" />
             <element signature="method#requestEntrance#0;class#Depot#0" />
             <element signature="method#requestExit#0;class#Depot#0" />
             <element signature="method#goToWork#0;class#Depot#0" />
-            <element signature="method#cleanBus#0;class#Depot#0" />
             <element signature="method#goToWork#1;class#Depot#0" />
             <element signature="e#11703#11704#0" expanded="true" />
             <element signature="e#11735#11736#0" expanded="true" />
@@ -565,8 +561,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="169">
-          <caret line="42" column="4" selection-start-line="42" selection-start-column="4" selection-end-line="50" selection-end-column="11" />
+        <state relative-caret-position="152">
+          <caret line="20" column="19" lean-forward="true" selection-start-line="20" selection-start-column="19" selection-end-line="20" selection-end-column="19" />
         </state>
       </provider>
     </entry>

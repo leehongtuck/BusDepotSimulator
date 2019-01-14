@@ -72,7 +72,6 @@ public class Depot {
 
             if (closingSoon) {
                 prepareClosure();
-                System.out.println("Prepare to close");
                 return;
             }
 
@@ -96,7 +95,6 @@ public class Depot {
                     return;
                 }else if(bridgeQueue.isEmpty()){
                     try {
-                        System.out.println("Waiting for close");
                         wait();
                         if(bridgeQueue.isEmpty()){
                             continue;
@@ -208,7 +206,6 @@ public class Depot {
                 availableCleanerList.notify();
             }
             availableCleanerList.offer(c);
-            System.out.println("Added cleaner to standby: " + availableCleanerList);
         }
     }
 
@@ -254,7 +251,6 @@ public class Depot {
 
             }
             c = availableCleanerList.remove();
-            System.out.println("Available cleaners: " + availableCleanerList);
         }
 
         System.out.println(DepotTime.getTime() + bus + " is heading to the cleaning bay!");
