@@ -1,10 +1,12 @@
 public class Mechanic implements Runnable {
     private int id;
     private Depot depot;
+    private int duration;
 
     public Mechanic(int id, Depot depot){
         this.id = id;
         this.depot = depot;
+        duration = depot.getServiceDuration();
     }
     public int getId() {
         return id;
@@ -20,7 +22,7 @@ public class Mechanic implements Runnable {
         if(Math.random()<0.2){
             System.out.println(DepotTime.getTime() + "Oh no! Bus " + bus.getId() + " seems to be short of fuel! Getting it refilled now!");
             try {
-                Thread.sleep((long)(5000 * DepotTime.TIMESCALE));
+                Thread.sleep((long)((duration * 1000 / 10) * DepotTime.TIMESCALE));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -28,7 +30,7 @@ public class Mechanic implements Runnable {
         }
 
         try {
-            Thread.sleep((long)(60000 * DepotTime.TIMESCALE));
+            Thread.sleep((long)((duration * 1000) * DepotTime.TIMESCALE));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -37,7 +39,7 @@ public class Mechanic implements Runnable {
         if(Math.random()<0.2){
             System.out.println(DepotTime.getTime() + "Oh no! Bus " + bus.getId() + " is found to have a mechanical failure! Fixing it ASAP!");
             try {
-                Thread.sleep((long)(120000 * DepotTime.TIMESCALE));
+                Thread.sleep((long)((duration * 1000 * 2) * DepotTime.TIMESCALE));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -45,6 +47,8 @@ public class Mechanic implements Runnable {
         }else {
             System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " finished servicing!");
         }
+
+        depot.standbyForWork(this);
 
         if(Math.random()<0.2){
             System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " is too dirty to be driven!. Go to cleaning bay ASAP!");

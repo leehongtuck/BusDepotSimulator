@@ -200,7 +200,7 @@ public class Depot {
         standbyForWork(c);
     }
 
-    private void standbyForWork(Cleaner c){
+    public void standbyForWork(Cleaner c){
         synchronized (availableCleanerList){
             if (availableCleanerList.isEmpty()&& waitClean >0){
                 availableCleanerList.notify();
@@ -268,7 +268,7 @@ public class Depot {
         standbyForWork(m);
     }
 
-    private void standbyForWork(Mechanic m){
+    public void standbyForWork(Mechanic m){
         synchronized (availableMechanicList){
             if(availableMechanicList.isEmpty()&&waitRepair >0){
                 availableMechanicList.notify();
@@ -319,6 +319,14 @@ public class Depot {
 
     public boolean isRaining(){
         return isRaining;
+    }
+
+    public int getCleanDuration() {
+        return cleanDuration;
+    }
+
+    public int getServiceDuration() {
+        return serviceDuration;
     }
 
     public void changeWeather(){

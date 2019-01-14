@@ -1,10 +1,12 @@
 public class Cleaner implements Runnable {
     private int id;
     private Depot depot;
+    private int duration;
 
     public Cleaner(int id, Depot depot){
         this.id = id;
         this.depot = depot;
+        duration = depot.getCleanDuration();
     }
     public int getId() {
         return id;
@@ -19,7 +21,7 @@ public class Cleaner implements Runnable {
         System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " is being cleaned by cleaner " + id);
         for(int i = 0; i < 10; i++){
             try {
-                Thread.sleep((long)(30000 * DepotTime.TIMESCALE)/10);
+                Thread.sleep((long)((duration * 1000) * DepotTime.TIMESCALE)/10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -42,6 +44,7 @@ public class Cleaner implements Runnable {
         }
 
         System.out.println(DepotTime.getTime() + "Bus " + bus.getId() + " finished cleaning!");
+        depot.standbyForWork(this);
         depot.requestExit(bus);
     }
 }
