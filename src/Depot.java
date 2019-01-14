@@ -108,6 +108,14 @@ public class Depot {
             System.out.println("Buses queueing for bridge: " + bridgeQueue);
             Bus bus = bridgeQueue.remove();
             //let the bus travel on ramp
+
+            //remove any buses queueing to enter
+            if(bus.getState().equals(Bus.BusState.enter)&& closingTime){
+                System.out.println("Sorry " + bus + ". Depot is closing, please come back tomorrow.");
+                bus.setState(Bus.BusState.outside);
+                return;
+            }
+
             System.out.println(DepotTime.getTime() + bus + " is crossing the ramp");
             try {
                 if (bus instanceof MiniBus) {
