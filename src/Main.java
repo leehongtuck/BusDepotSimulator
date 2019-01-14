@@ -40,15 +40,15 @@ public class Main {
             t[i].start();
         }
 
-        d.threadR.join();
-        int count = 0;
-        for(Thread th: t){
-
-            if(th.isAlive()){
-                System.out.println("Bus " + count + " still alive gg.");
-            }
-            count++;
-        }
+//        d.threadR.join();
+//        int count = 0;
+//        for(Thread th: t){
+//
+//            if(th.isAlive()){
+//                System.out.println("Bus " + count + " still alive gg.");
+//            }
+//            count++;
+//        }
 
 //        Thread t = new Thread(new MiniBus(5,d));
 //        t.start();

@@ -18,8 +18,7 @@ public class Depot {
 
     //Depot operations information
     private DepotTime time = new DepotTime(this);
-    public Ramp ramp = new Ramp();
-    Thread threadR = new Thread(ramp);
+    private Ramp ramp = new Ramp();
     private volatile boolean closingSoon = false;
     private volatile boolean closingTime = false;
     private volatile boolean isEmpty = false;
@@ -177,6 +176,7 @@ public class Depot {
         serviceDuration = durService;
         Thread threadT = new Thread(time);
         threadT.start();
+        Thread threadR = new Thread(ramp);
         threadR.start();
     }
 
